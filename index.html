@@ -3,205 +3,522 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplikasi PWA Single File</title>
-  
-  <!-- Meta Tag PWA & Tema -->
-  <meta name="theme-color" content="#4A90E2">
-  <meta name="description" content="Aplikasi PWA Single File Sederhana">
-  <link rel="apple-touch-icon" href="https://via.placeholder.com/192/4A90E2/ffffff?text=PWA">
-
-  <!-- Manifest PWA Dinamis via Data URI -->
-  <script>
-    const manifest = {
-      "name": "PWA Single File",
-      "short_name": "PWA App",
-      "start_url": "./",
-      "display": "standalone",
-      "background_color": "#ffffff",
-      "theme_color": "#4A90E2",
-      "icons": [
-        {
-          "src": "https://via.placeholder.com/192/4A90E2/ffffff?text=PWA",
-          "sizes": "192x192",
-          "type": "image/png"
-        },
-        {
-          "src": "https://via.placeholder.com/512/4A90E2/ffffff?text=PWA",
-          "sizes": "512x512",
-          "type": "image/png"
-        }
-      ]
-    };
-    const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(manifestBlob);
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
-    document.head.appendChild(link);
-  </script>
-
+  <title>Emerald Pay - Kas & Tabungan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    /* CSS Styling */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
     body {
-      background-color: #f4f7f6;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: linear-gradient(135deg, #f0fdf4 0%, #e6f4ea 50%, #f6fbf7 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
-      padding: 20px;
+      overflow: hidden; /* Prevent body scroll, handle inside mobile frame */
+    }
+    
+    /* Smooth Transitions */
+    .modal-transition {
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-content-transition {
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
     }
 
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
+    /* Glassmorphism Standard */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     }
 
-    h1 {
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 1.5rem;
+    .glass-emerald-header {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);
     }
 
-    p {
-      color: #666;
-      font-size: 0.95rem;
-      margin-bottom: 20px;
+    /* Simplified Balance Breakdown Cards */
+    .simple-glass-cash {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1.5px solid rgba(16, 185, 129, 0.3); /* Soft Emerald border */
+    }
+    .simple-glass-atm {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1.5px solid rgba(59, 130, 246, 0.3); /* Soft Blue border */
+    }
+    .simple-glass-gold {
+      background: rgba(255, 255, 255, 0.7);
+      border: 1.5px solid rgba(245, 158, 11, 0.4); /* Soft Gold border */
     }
 
-    .status {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: bold;
-      margin-bottom: 20px;
+    .glass-input {
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(209, 213, 219, 0.6);
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      background: rgba(255, 255, 255, 1);
+      border-color: #10b981;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
     }
 
-    .online { background-color: #e6f4ea; color: #137333; }
-    .offline { background-color: #fce8e6; color: #c5221f; }
-
-    .btn {
-      background-color: #4A90E2;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-      width: 100%;
-      transition: background 0.2s;
+    .btn-bounce {
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+    .btn-bounce:active {
+      transform: scale(0.95);
     }
 
-    .btn:hover {
-      background-color: #357abd;
+    /* List Item Animation */
+    .list-item {
+      animation: fadeInUp 0.3s ease forwards;
+      opacity: 0;
+      transform: translateY(10px);
     }
 
-    #installBtn {
-      display: none;
-      background-color: #34a853;
-      margin-top: 10px;
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
-<body>
+<body class="flex justify-center items-center p-0 sm:p-4">
 
-  <div class="card">
-    <h1>PWA Single File</h1>
-    <p>Aplikasi ini dapat diinstal dan berjalan secara offline!</p>
+  <!-- Mobile App Frame -->
+  <div class="w-full max-w-md h-[100vh] sm:h-[880px] bg-slate-50 sm:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative sm:border-[6px] border-white">
     
-    <div id="status" class="status online">Online</div>
+    <!-- Header -->
+    <header class="p-5 pb-3 flex justify-between items-center glass-card z-10 sticky top-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl glass-emerald-header flex items-center justify-center text-white shadow-md">
+          <i class="fa-solid fa-leaf text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xs font-semibold text-emerald-800 tracking-wider uppercase">Emerald Pay</h1>
+          <p class="text-sm font-bold text-slate-800">Kas & Tabungan</p>
+        </div>
+      </div>
+      <button onclick="openTxModal()" class="w-10 h-10 rounded-full glass-emerald-header text-white flex items-center justify-center btn-bounce shadow-lg">
+        <i class="fa-solid fa-plus text-base"></i>
+      </button>
+    </header>
 
-    <button class="btn" onclick="tambahHitungan()">Klik Saya (<span id="counter">0</span>)</button>
-    <button id="installBtn" class="btn">Install Aplikasi</button>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto p-4 space-y-5 pb-20">
+
+      <!-- Total Combined Balance Card -->
+      <div class="glass-emerald-header rounded-3xl p-5 text-white relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+        <div class="flex justify-between items-start mb-1 relative z-10">
+          <div>
+            <span class="text-[10px] font-medium text-emerald-50 uppercase tracking-widest">Total Aset Keseluruhan</span>
+            <h2 id="totalBalance" class="text-3xl font-extrabold mt-1 tracking-tight">Rp 0</h2>
+          </div>
+          <button onclick="openWelcomePanel(true)" class="text-[10px] bg-black/10 hover:bg-black/20 backdrop-blur-md px-2.5 py-1 rounded-full font-semibold transition-colors">
+            <i class="fa-solid fa-rotate me-1"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Simplified 3 Wallet Breakdown -->
+      <div class="grid grid-cols-3 gap-2.5">
+        <!-- Cash -->
+        <div class="simple-glass-cash p-3 rounded-2xl flex flex-col justify-center items-center text-center backdrop-blur-md shadow-sm">
+          <i class="fa-solid fa-wallet text-emerald-500 mb-1 text-sm"></i>
+          <span class="text-[9px] font-bold text-slate-500 uppercase">Cash</span>
+          <p id="cashBalance" class="text-xs font-bold text-slate-800 mt-0.5">Rp 0</p>
+        </div>
+        <!-- ATM -->
+        <div class="simple-glass-atm p-3 rounded-2xl flex flex-col justify-center items-center text-center backdrop-blur-md shadow-sm">
+          <i class="fa-solid fa-credit-card text-blue-500 mb-1 text-sm"></i>
+          <span class="text-[9px] font-bold text-slate-500 uppercase">ATM</span>
+          <p id="atmBalance" class="text-xs font-bold text-slate-800 mt-0.5">Rp 0</p>
+        </div>
+        <!-- Tabungan -->
+        <div class="simple-glass-gold p-3 rounded-2xl flex flex-col justify-center items-center text-center backdrop-blur-md shadow-sm relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-8 h-8 bg-amber-400/10 rounded-bl-full"></div>
+          <i class="fa-solid fa-piggy-bank text-amber-500 mb-1 text-sm"></i>
+          <span class="text-[9px] font-bold text-slate-500 uppercase">Tabungan</span>
+          <p id="savingsBalance" class="text-xs font-bold text-slate-800 mt-0.5">Rp 0</p>
+        </div>
+      </div>
+
+      <!-- Transaction List Header -->
+      <div class="flex justify-between items-end px-1 border-b border-slate-200 pb-2">
+        <h3 class="text-sm font-bold text-slate-700">Riwayat Transaksi</h3>
+        <span id="txCount" class="text-[10px] text-slate-400 font-medium">0 Catatan</span>
+      </div>
+
+      <!-- Dynamic Transaction List -->
+      <div id="txContainer" class="space-y-2.5">
+        <!-- Transaksi di-render di sini -->
+      </div>
+    </main>
+
+    <!-- ========================================= -->
+    <!-- MODAL 1: WELCOME PANEL (Layar Penuh)      -->
+    <!-- ========================================= -->
+    <div id="welcomePanel" class="fixed inset-0 bg-white z-[60] flex flex-col p-6 modal-transition opacity-0 invisible">
+      <div class="flex-1 flex flex-col justify-center items-center max-w-sm mx-auto w-full space-y-6 transform scale-95 modal-content-transition" id="welcomeContent">
+        
+        <div class="text-center space-y-2">
+          <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-hand-holding-dollar text-2xl"></i>
+          </div>
+          <h2 class="text-2xl font-extrabold text-slate-800">Selamat Datang</h2>
+          <p class="text-sm text-slate-500">Mari atur saldo awal Anda untuk memulai pencatatan yang rapi.</p>
+        </div>
+
+        <form id="initForm" onsubmit="handleInitSetup(event)" class="w-full space-y-4 bg-slate-50 p-5 rounded-3xl border border-slate-100">
+          <div>
+            <label class="text-xs font-bold text-slate-600 block mb-1">Saldo Uang Tunai (Cash)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">Rp</span>
+              <input type="number" id="initCash" required placeholder="0" class="w-full glass-input pl-9 pr-3 py-3 rounded-xl text-sm font-bold text-slate-800">
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-slate-600 block mb-1">Saldo Rekening ATM</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">Rp</span>
+              <input type="number" id="initAtm" required placeholder="0" class="w-full glass-input pl-9 pr-3 py-3 rounded-xl text-sm font-bold text-slate-800">
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-amber-600 block mb-1">Saldo Tabungan Saat Ini</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 text-sm font-bold">Rp</span>
+              <input type="number" id="initSavings" required placeholder="0" class="w-full glass-input pl-9 pr-3 py-3 rounded-xl text-sm font-bold text-slate-800 border-amber-200 bg-amber-50/30">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-3.5 rounded-xl glass-emerald-header text-white text-sm font-bold uppercase tracking-wider btn-bounce mt-4 shadow-lg shadow-emerald-500/30">
+            Simpan & Mulai
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MODAL 2: TAMBAH TRANSAKSI                 -->
+    <!-- ========================================= -->
+    <div id="txModalWrapper" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-center items-end sm:items-center p-0 sm:p-4 modal-transition opacity-0 invisible">
+      <div id="txModalContent" class="glass-card w-full max-w-md bg-white/95 rounded-t-[32px] sm:rounded-3xl p-6 space-y-4 shadow-2xl modal-content-transition translate-y-full sm:translate-y-0 sm:scale-95">
+        
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-lg font-bold text-slate-800">Catat Transaksi</h3>
+          <button onclick="closeTxModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center btn-bounce">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form id="txForm" onsubmit="handleFormSubmit(event)" class="space-y-3.5">
+          <div>
+            <label class="text-[11px] font-bold text-slate-500 block mb-1 uppercase tracking-wide">Keterangan</label>
+            <input type="text" id="title" required placeholder="Misal: Makan Siang, Beli Kuota..." class="w-full glass-input px-3.5 py-2.5 rounded-xl text-sm text-slate-800">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 block mb-1 uppercase tracking-wide">Nominal (Rp)</label>
+              <input type="number" id="amount" required placeholder="0" class="w-full glass-input px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800">
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 block mb-1 uppercase tracking-wide">Jenis</label>
+              <select id="type" onchange="toggleFormLogic()" class="w-full glass-input px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-800">
+                <option value="expense">Pengeluaran</option>
+                <option value="income">Pemasukan</option>
+                <option value="savings_deposit">Nabung (Ke Tabungan)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label id="walletLabel" class="text-[11px] font-bold text-slate-500 block mb-1 uppercase tracking-wide">Sumber Dompet</label>
+              <select id="wallet" class="w-full glass-input px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-800">
+                <option value="cash">Tunai (Cash)</option>
+                <option value="atm">Rekening ATM</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-slate-500 block mb-1 uppercase tracking-wide">Kategori</label>
+              <select id="category" class="w-full glass-input px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-800">
+                <option value="Makanan">Makanan</option>
+                <option value="Transport">Transportasi</option>
+                <option value="Belanja">Belanja</option>
+                <option value="Gaji">Pemasukan / Gaji</option>
+                <option value="Tabungan">Tabungan</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-bold text-slate-500 block mb-1 uppercase tracking-wide">Tanggal</label>
+            <input type="date" id="date" required class="w-full glass-input px-3.5 py-2.5 rounded-xl text-sm text-slate-800">
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full py-3.5 rounded-xl glass-emerald-header text-white text-sm font-bold uppercase tracking-wider btn-bounce mt-2 shadow-lg shadow-emerald-500/20">
+            Simpan Data
+          </button>
+        </form>
+      </div>
+    </div>
+
   </div>
 
+  <!-- IndexedDB & App Logic -->
   <script>
-    // --- 1. Logika Aplikasi Sederhana ---
-    let count = parseInt(localStorage.getItem('counter') || '0');
-    document.getElementById('counter').innerText = count;
+    let db;
+    const DB_NAME = 'EmeraldPayDB_V2';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'transactions';
 
-    function tambahHitungan() {
-      count++;
-      document.getElementById('counter').innerText = count;
-      localStorage.setItem('counter', count);
+    // Inisialisasi DB
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            store.createIndex('type', 'type', { unique: false });
+          }
+        };
+        request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+        request.onerror = (e) => reject(e);
+      });
     }
 
-    // --- 2. Deteksi Status Online / Offline ---
-    function updateStatus() {
-      const statusEl = document.getElementById('status');
-      if (navigator.onLine) {
-        statusEl.innerText = "Online";
-        statusEl.className = "status online";
+    // Fungsi DB Operations
+    const addTx = (tx) => new Promise(res => {
+      const req = db.transaction([STORE_NAME], 'readwrite').objectStore(STORE_NAME).add(tx);
+      req.onsuccess = () => res(req.result);
+    });
+    
+    const getAllTx = () => new Promise(res => {
+      const req = db.transaction([STORE_NAME], 'readonly').objectStore(STORE_NAME).getAll();
+      req.onsuccess = () => res(req.result);
+    });
+    
+    const deleteTx = (id) => new Promise(res => {
+      const req = db.transaction([STORE_NAME], 'readwrite').objectStore(STORE_NAME).delete(id);
+      req.onsuccess = () => res(true);
+    });
+
+    const formatRp = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+
+    // Toggle Form Logic Update (Bug Fix)
+    function toggleFormLogic() {
+      const type = document.getElementById('type').value;
+      const category = document.getElementById('category');
+      const btn = document.getElementById('submitBtn');
+
+      if(type === 'savings_deposit') {
+        category.value = 'Tabungan';
+        btn.style.background = 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)'; // Gold button
+        btn.style.boxShadow = '0 10px 25px -5px rgba(217, 119, 6, 0.3)';
+        btn.innerHTML = 'Pindahkan ke Tabungan';
       } else {
-        statusEl.innerText = "Offline";
-        statusEl.className = "status offline";
+        btn.style.background = 'linear-gradient(135deg, #059669 0%, #10b981 100%)'; // Emerald button
+        btn.style.boxShadow = '0 10px 25px -5px rgba(5, 150, 105, 0.3)';
+        btn.innerHTML = 'Simpan Data';
       }
     }
-    window.addEventListener('online', updateStatus);
-    window.addEventListener('offline', updateStatus);
-    updateStatus();
 
-    // --- 3. Prompt Install PWA ---
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
+    // Kalkulasi dan Render UI Utama
+    async function renderApp() {
+      const allTx = await getAllTx();
+      
+      let cashTotal = 0, atmTotal = 0, savingsTotal = 0;
 
-    window.addEventListener('beforeinstallprompt', (e) => {
+      // Hitung Saldo Secara Akurat
+      allTx.forEach(t => {
+        const amt = Number(t.amount);
+        if (t.type === 'init') {
+          if (t.wallet === 'cash') cashTotal += amt;
+          if (t.wallet === 'atm') atmTotal += amt;
+          if (t.wallet === 'savings') savingsTotal += amt;
+        } else if (t.type === 'income') {
+          if (t.wallet === 'cash') cashTotal += amt;
+          if (t.wallet === 'atm') atmTotal += amt;
+        } else if (t.type === 'expense') {
+          if (t.wallet === 'cash') cashTotal -= amt;
+          if (t.wallet === 'atm') atmTotal -= amt;
+        } else if (t.type === 'savings_deposit') {
+          // Transfer dari dompet ke tabungan
+          if (t.wallet === 'cash') cashTotal -= amt;
+          if (t.wallet === 'atm') atmTotal -= amt;
+          savingsTotal += amt;
+        }
+      });
+
+      // Update Teks DOM
+      document.getElementById('cashBalance').innerText = formatRp(cashTotal);
+      document.getElementById('atmBalance').innerText = formatRp(atmTotal);
+      document.getElementById('savingsBalance').innerText = formatRp(savingsTotal);
+      document.getElementById('totalBalance').innerText = formatRp(cashTotal + atmTotal + savingsTotal);
+
+      // Render List Transaksi (Kecuali Init)
+      const listTx = allTx.filter(t => t.type !== 'init').sort((a,b) => new Date(b.date) - new Date(a.date));
+      document.getElementById('txCount').innerText = `${listTx.length} Catatan`;
+      
+      const container = document.getElementById('txContainer');
+      container.innerHTML = '';
+
+      if(listTx.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Belum ada transaksi bulan ini.</div>`;
+        return;
+      }
+
+      listTx.forEach((tx, index) => {
+        const isGold = tx.type === 'savings_deposit';
+        const isInc = tx.type === 'income';
+        
+        const card = document.createElement('div');
+        // Animation delay for cascading effect
+        card.style.animationDelay = `${index * 0.05}s`; 
+        card.className = `p-3 rounded-2xl flex justify-between items-center list-item bg-white border shadow-sm ${isGold ? 'border-amber-100' : 'border-slate-100'}`;
+        
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl ${isGold ? 'bg-amber-100 text-amber-500' : (isInc ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-500')} flex items-center justify-center font-bold text-sm">
+              <i class="fa-solid ${isGold ? 'fa-piggy-bank' : (isInc ? 'fa-arrow-down' : 'fa-arrow-up')}"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-800">${tx.title}</h4>
+              <p class="text-[10px] text-slate-400 mt-0.5">${tx.category} • ${tx.wallet.toUpperCase()} • ${tx.date}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-extrabold ${isGold ? 'text-amber-500' : (isInc ? 'text-emerald-600' : 'text-slate-800')}">
+              ${isGold ? '+' : (isInc ? '+' : '-')}${formatRp(tx.amount)}
+            </span>
+            <button onclick="removeTx(${tx.id})" class="text-slate-300 hover:text-rose-500 p-1.5 transition-colors">
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Modal Control Functions (Menggunakan transisi CSS halus)
+    function openWelcomePanel(isReset = false) {
+      const panel = document.getElementById('welcomePanel');
+      const content = document.getElementById('welcomeContent');
+      
+      if(isReset) document.getElementById('initForm').reset();
+      
+      panel.classList.remove('invisible', 'opacity-0');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }
+
+    function closeWelcomePanel() {
+      const panel = document.getElementById('welcomePanel');
+      const content = document.getElementById('welcomeContent');
+      
+      panel.classList.add('opacity-0');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+      
+      setTimeout(() => panel.classList.add('invisible'), 300); // tunggu animasi selesai
+    }
+
+    function openTxModal() {
+      document.getElementById('date').valueAsDate = new Date();
+      toggleFormLogic(); // reset UI button style
+      
+      const wrapper = document.getElementById('txModalWrapper');
+      const content = document.getElementById('txModalContent');
+      
+      wrapper.classList.remove('invisible', 'opacity-0');
+      // Responsive transform
+      if(window.innerWidth < 640) {
+        content.classList.remove('translate-y-full');
+      } else {
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+      }
+    }
+
+    function closeTxModal() {
+      const wrapper = document.getElementById('txModalWrapper');
+      const content = document.getElementById('txModalContent');
+      
+      wrapper.classList.add('opacity-0');
+      if(window.innerWidth < 640) {
+        content.classList.add('translate-y-full');
+      } else {
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+      }
+      setTimeout(() => wrapper.classList.add('invisible'), 300);
+    }
+
+    // Form Handlers
+    async function handleInitSetup(e) {
       e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'block';
-    });
+      
+      const cash = Number(document.getElementById('initCash').value) || 0;
+      const atm = Number(document.getElementById('initAtm').value) || 0;
+      const savings = Number(document.getElementById('initSavings').value) || 0;
 
-    installBtn.addEventListener('click', () => {
-      installBtn.style.display = 'none';
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          deferredPrompt = null;
-        });
+      // Reset data lama jika user menekan tombol "Reset"
+      const all = await getAllTx();
+      for (let t of all) { await deleteTx(t.id); }
+
+      const now = new Date().toISOString().split('T')[0];
+      await addTx({ title: 'Saldo Awal Tunai', amount: cash, type: 'init', wallet: 'cash', category: 'Setup', date: now });
+      await addTx({ title: 'Saldo Awal ATM', amount: atm, type: 'init', wallet: 'atm', category: 'Setup', date: now });
+      await addTx({ title: 'Saldo Awal Tabungan', amount: savings, type: 'init', wallet: 'savings', category: 'Setup', date: now });
+
+      closeWelcomePanel();
+      renderApp(); // Render ulang langsung
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      // Memastikan tipe data benar (Fix Bug NaN)
+      const amount = Number(document.getElementById('amount').value) || 0;
+      if (amount <= 0) return alert('Nominal harus lebih dari 0');
+
+      const newTx = {
+        title: document.getElementById('title').value,
+        amount: amount,
+        type: document.getElementById('type').value,
+        wallet: document.getElementById('wallet').value,
+        category: document.getElementById('category').value,
+        date: document.getElementById('date').value
+      };
+
+      await addTx(newTx);
+      
+      // Tutup modal, reset form, dan update UI seketika
+      closeTxModal();
+      document.getElementById('txForm').reset();
+      renderApp();
+    }
+
+    async function removeTx(id) {
+      await deleteTx(id);
+      renderApp(); // UI seketika menyesuaikan total saldo
+    }
+
+    // Initializer App
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initDB();
+      const current = await getAllTx();
+      
+      // Cek jika belum ada data inisialisasi
+      if(current.length === 0) {
+        openWelcomePanel();
+      } else {
+        renderApp();
       }
     });
-
-    // --- 4. Registrasi Service Worker dari Blob ---
-    if ('serviceWorker' in navigator) {
-      const swCode = `
-        const CACHE_NAME = 'pwa-single-file-v1';
-
-        self.addEventListener('install', (e) => {
-          self.skipWaiting();
-        });
-
-        self.addEventListener('activate', (e) => {
-          e.waitUntil(clients.claim());
-        });
-
-        self.addEventListener('fetch', (e) => {
-          e.respondWith(
-            fetch(e.request).catch(() => {
-              return caches.match(e.request);
-            })
-          );
-        });
-      `;
-
-      const blob = new Blob([swCode], { type: 'text/javascript' });
-      const swUrl = URL.createObjectURL(blob);
-
-      navigator.serviceWorker.register(swUrl)
-        .then(() => console.log('Service Worker berhasil didaftarkan!'))
-        .catch(err => console.error('Gagal mendaftarkan Service Worker:', err));
-    }
   </script>
 </body>
 </html>
